@@ -97,7 +97,7 @@
     <!-- ربط Firebase (سحابي مجاني) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // إعدادات فايربيس الخاصة بمشروعك الحقيقي
@@ -115,16 +115,17 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
+        // استخدام طريقة التوجيه المباشر لتجاوز حظر المتصفحات للهواتف
         window.loginWithGoogle = function() {
-            signInWithPopup(auth, provider)
-                .then((result) => {
-                    console.log("تم تسجيل الدخول بنجاح:", result.user);
-                })
-                .catch((error) => {
-                    console.error("خطأ تسجيل الدخول:", error);
-                    alert("خطأ في تسجيل الدخول: " + error.message);
-                });
+            signInWithRedirect(auth, provider).catch((error) => {
+                alert("خطأ في تسجيل الدخول: " + error.message);
+            });
         };
+
+        // التحقق من نتيجة تسجيل الدخول بعد العودة للصفحة
+        getRedirectResult(auth).catch((error) => {
+            console.error("خطأ إعادة التوجيه:", error);
+        });
 
         window.logout = function() {
             signOut(auth);
@@ -190,3 +191,4 @@
 </body>
 </html>
 
+    
