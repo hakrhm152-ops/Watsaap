@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق المحادثات - المطور هاجس</title>
+    <!-- استدعاء خطوط وأيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family:  Segoe UI , Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #111b21; color: #e9edef; height: 100vh; display: flex; justify-content: center; align-items: center; }
+        
+        .app-container { width: 100%; max-width: 1200px; height: 95vh; background: #222d34; display: flex; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border-radius: 8px; overflow: hidden; }
+        
+        /* شاشة تسجيل الدخول */
+        #login-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #111b21; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
+        .login-box { background: #222d34; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.6); max-width: 400px; width: 90%; }
+        .login-box h1 { color: #00a884; margin-bottom: 20px; font-size: 24px; }
+        .login-box p { color: #8696a0; margin-bottom: 30px; font-size: 14px; }
+        .google-btn { background: #fff; color: #333; border: none; padding: 12px 20px; border-radius: 24px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; transition: 0.3s; }
+        .google-btn:hover { background: #f0f2f5; }
+        .google-btn i { color: #4285F4; font-size: 20px; }
+
+        /* تصميم الشات الرئيسي */
+        .sidebar { width: 35%; background: #111b21; border-left: 1px solid #222d34; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 15px; background: #202c33; display: flex; align-items: center; justify-content: space-between; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-info img { width: 40px; height: 40px; border-radius: 50%; }
+        
+        .chat-area { width: 65%; display: flex; flex-direction: column; background: #efeae2; background-image: url( https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png ); }
+        .chat-header { padding: 15px; background: #202c33; color: #fff; display: flex; align-items: center; justify-content: space-between; }
+        .messages-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .message { max-width: 60%; padding: 10px 14px; border-radius: 8px; font-size: 14px; position: relative; word-wrap: break-word; }
+        .message.incoming { background: #fff; color: #111; align-self: flex-start; border-top-right-radius: 0; }
+        .message.outgoing { background: #005c4b; color: #fff; align-self: flex-end; border-top-left-radius: 0; }
+        
+        .chat-input-area { padding: 10px 20px; background: #202c33; display: flex; align-items: center; gap: 10px; }
+        .chat-input-area input { flex: 1; background: #2a3942; border: none; padding: 12px 15px; border-radius: 8px; color: #fff; outline: none; font-size: 14px; }
+        .chat-input-area button { background: none; border: none; color: #8696a0; font-size: 20px; cursor: pointer; }
+        .chat-input-area button:hover { color: #00a884; }
+
+        /* لوحة معلومات المطور */
+        .developer-badge { padding: 10px; background: #202c33; text-align: center; font-size: 12px; color: #8696a0; border-top: 1px solid #222d34; }
+        .developer-badge a { color: #00a884; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- شاشة تسجيل الدخول بحساب جوجل -->
+    <div id="login-screen">
+        <div class="login-box">
+            <h1>تتمام - واتساب جوجل</h1>
+            <p>سجل دخولك باستخدام حساب جوجل الخاص بك للبدء بالمراسلة الفورية.</p>
+            <button class="google-btn" onclick="loginWithGoogle()">
+                <i class="fab fa-google"></i> تسجيل الدخول بواسطة جوجل
+            </button>
+        </div>
+    </div>
+
+    <!-- حاوية التطبيق -->
+    <div class="app-container" id="app-container" style="display: none;">
+        <!-- القائمة الجانبية -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="user-info">
+                    <img id="user-avatar" src="" alt="صورة المستخدم">
+                    <span id="user-name">اسم المستخدم</span>
+                </div>
+                <button onclick="logout()" title="تسجيل الخروج" style="background:none; border:none; color:#aebac1; cursor:pointer;"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+            <div style="padding: 15px; background: #111b21; color: #00a884; font-weight: bold; border-bottom: 1px solid #222d34;">
+                المحادثات العامة (غرفة الدردشة)
+            </div>
+            <!-- بصمة المطور أسفل القائمة -->
+            <div class="developer-badge">
+                تطوير المطور: <b>هاجس</b><br>
+                للتواصل: <a href="https://wa.me/967778408430" target="_blank">+967778408430</a>
+            </div>
+        </div>
+
+        <!-- منطقة الشات -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <span id="chat-title">غرفة الدردشة العامة (متصل بحساب جوجل)</span>
+                <a href="https://wa.me/967778408430" target="_blank" style="color: #00a884; text-decoration: none; font-size: 13px;"><i class="fab fa-whatsapp"></i> تواصل مع المطور</a>
+            </div>
+            <div class="messages-box" id="messages-box">
+                <!-- الرسائل تظهر هنا ديناميكياً -->
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="message-input" placeholder="اكتب رسالة..." onkeypress="checkEnter(event)">
+                <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ربط Firebase (سحابي مجاني) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // إعدادات فايربيس الخاصة بك (قم بإنشاء مشروع مجاني على Firebase Console وضع المفاتيح هنا)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        window.loginWithGoogle = function() {
+            signInWithPopup(auth, provider).catch((error) => {
+                alert("خطأ في تسجيل الدخول: " + error.message);
+            });
+        };
+
+        window.logout = function() {
+            signOut(auth);
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById( login-screen ).style.display =  none ;
+                document.getElementById( app-container ).style.display =  flex ;
+                document.getElementById( user-name ).innerText = user.displayName;
+                document.getElementById( user-avatar ).src = user.photoURL;
+                loadMessages(user);
+            } else {
+                document.getElementById( login-screen ).style.display =  flex ;
+                document.getElementById( app-container ).style.display =  none ;
+            }
+        });
+
+        window.sendMessage = async function() {
+            const input = document.getElementById( message-input );
+            const text = input.value.trim();
+            if (!text) return;
+
+            const user = auth.currentUser;
+            try {
+                await addDoc(collection(db, "messages"), {
+                    text: text,
+                    senderName: user.displayName,
+                    senderEmail: user.email,
+                    senderPhoto: user.photoURL,
+                    createdAt: serverTimestamp()
+                });
+                input.value =   ;
+            } catch (e) {
+                console.error("خطأ في إرسال الرسالة: ", e);
+            }
+        };
+
+        window.checkEnter = function(e) {
+            if (e.key ===  Enter ) sendMessage();
+        };
+
+        function loadMessages(currentUser) {
+            const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
+            onSnapshot(q, (snapshot) => {
+                const box = document.getElementById( messages-box );
+                box.innerHTML =   ;
+                snapshot.forEach((doc) => {
+                    const msg = doc.data();
+                    const isMe = msg.senderEmail === currentUser.email;
+                    const div = document.createElement( div );
+                    div.className = `message ${isMe ?  outgoing  :  incoming }`;
+                    div.innerHTML = `
+                        <div style="font-size: 11px; color: ${isMe ?  #bbf2f6  :  #00a884 }; font-weight: bold; margin-bottom: 2px;">${msg.senderName}</div>
+                        <div>${msg.text}</div>
+                    `;
+                    box.appendChild(div);
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+    </script>
+</body>
+</html>
+
+  
