@@ -116,9 +116,14 @@
         const provider = new GoogleAuthProvider();
 
         window.loginWithGoogle = function() {
-            signInWithPopup(auth, provider).catch((error) => {
-                alert("خطأ في تسجيل الدخول: " + error.message);
-            });
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    console.log("تم تسجيل الدخول بنجاح:", result.user);
+                })
+                .catch((error) => {
+                    console.error("خطأ تسجيل الدخول:", error);
+                    alert("خطأ في تسجيل الدخول: " + error.message);
+                });
         };
 
         window.logout = function() {
@@ -185,4 +190,3 @@
 </body>
 </html>
 
-    
