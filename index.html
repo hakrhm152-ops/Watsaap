@@ -46,13 +46,13 @@
 </head>
 <body>
 
-    <!-- شاشة تسجيل الدخول بحساب جوجل -->
+    <!-- شاشة تسجيل الدخول (تم جعلها اختيارية أو للدخول المباشر) -->
     <div id="login-screen">
         <div class="login-box">
             <h1>تتمام - واتساب جوجل</h1>
-            <p>سجل دخولك باستخدام حساب جوجل الخاص بك للبدء بالمراسلة الفورية.</p>
-            <button class="google-btn" onclick="loginWithGoogle()">
-                <i class="fab fa-google"></i> تسجيل الدخول بواسطة جوجل
+            <p>انقر للدخول مباشرة إلى غرفة المحادثات الفورية كـ "المطور هاجس".</p>
+            <button class="google-btn" onclick="enterAppDirectly()">
+                <i class="fab fa-google"></i> دخول مباشر إلى التطبيق
             </button>
         </div>
     </div>
@@ -63,10 +63,10 @@
         <div class="sidebar">
             <div class="sidebar-header">
                 <div class="user-info">
-                    <img id="user-avatar" src="" alt="صورة المستخدم">
-                    <span id="user-name">اسم المستخدم</span>
+                    <img id="user-avatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="صورة المستخدم">
+                    <span id="user-name">المطور هاجس</span>
                 </div>
-                <button onclick="logout()" title="تسجيل الخروج" style="background:none; border:none; color:#aebac1; cursor:pointer;"><i class="fas fa-sign-out-alt"></i></button>
+                <button onclick="location.reload()" title="إعادة الخروج" style="background:none; border:none; color:#aebac1; cursor:pointer;"><i class="fas fa-sign-out-alt"></i></button>
             </div>
             <div style="padding: 15px; background: #111b21; color: #00a884; font-weight: bold; border-bottom: 1px solid #222d34;">
                 المحادثات العامة (غرفة الدردشة)
@@ -81,7 +81,7 @@
         <!-- منطقة الشات -->
         <div class="chat-area">
             <div class="chat-header">
-                <span id="chat-title">غرفة الدردشة العامة (متصل بحساب جوجل)</span>
+                <span id="chat-title">غرفة الدردشة العامة (متصل سحابياً)</span>
                 <a href="https://wa.me/967778408430" target="_blank" style="color: #00a884; text-decoration: none; font-size: 13px;"><i class="fab fa-whatsapp"></i> تواصل مع المطور</a>
             </div>
             <div class="messages-box" id="messages-box">
@@ -94,10 +94,9 @@
         </div>
     </div>
 
-    <!-- ربط Firebase (سحابي مجاني) -->
+    <!-- ربط Firebase (قاعدة البيانات والرسائل الفورية) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // إعدادات فايربيس الخاصة بمشروعك الحقيقي
@@ -111,56 +110,31 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
 
-        // استخدام طريقة التوجيه المباشر لتجاوز حظر المتصفحات للهواتف
-        window.loginWithGoogle = function() {
-            signInWithRedirect(auth, provider).catch((error) => {
-                alert("خطأ في تسجيل الدخول: " + error.message);
-            });
+        // الدخول المباشر لتجربة الشات بسلاسة
+        window.enterAppDirectly = function() {
+            document.getElementById( login-screen ).style.display =  none ;
+            document.getElementById( app-container ).style.display =  flex ;
+            loadMessages();
         };
-
-        // التحقق من نتيجة تسجيل الدخول بعد العودة للصفحة
-        getRedirectResult(auth).catch((error) => {
-            console.error("خطأ إعادة التوجيه:", error);
-        });
-
-        window.logout = function() {
-            signOut(auth);
-        };
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById( login-screen ).style.display =  none ;
-                document.getElementById( app-container ).style.display =  flex ;
-                document.getElementById( user-name ).innerText = user.displayName;
-                document.getElementById( user-avatar ).src = user.photoURL;
-                loadMessages(user);
-            } else {
-                document.getElementById( login-screen ).style.display =  flex ;
-                document.getElementById( app-container ).style.display =  none ;
-            }
-        });
 
         window.sendMessage = async function() {
             const input = document.getElementById( message-input );
             const text = input.value.trim();
             if (!text) return;
 
-            const user = auth.currentUser;
             try {
                 await addDoc(collection(db, "messages"), {
                     text: text,
-                    senderName: user.displayName,
-                    senderEmail: user.email,
-                    senderPhoto: user.photoURL,
+                    senderName: "هاجس (المطور)",
+                    senderEmail: "hakrhm152@gmail.com",
                     createdAt: serverTimestamp()
                 });
                 input.value =   ;
             } catch (e) {
                 console.error("خطأ في إرسال الرسالة: ", e);
+                alert("خطأ في الاتصال بقاعدة البيانات Firestore. تأكد من تفعيلها في Firebase Console.");
             }
         };
 
@@ -168,14 +142,14 @@
             if (e.key ===  Enter ) sendMessage();
         };
 
-        function loadMessages(currentUser) {
+        function loadMessages() {
             const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
             onSnapshot(q, (snapshot) => {
                 const box = document.getElementById( messages-box );
                 box.innerHTML =   ;
                 snapshot.forEach((doc) => {
                     const msg = doc.data();
-                    const isMe = msg.senderEmail === currentUser.email;
+                    const isMe = msg.senderName.includes("هاجس");
                     const div = document.createElement( div );
                     div.className = `message ${isMe ?  outgoing  :  incoming }`;
                     div.innerHTML = `
